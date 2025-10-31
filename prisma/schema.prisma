@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int        @id @default(autoincrement())
+  name      String
+  surname   String
+  email     String     @unique
+  password  String
+  role      Role       @default(CANDIDATE)
+  createdAt DateTime   @default(now())
+
+  candidate Candidate?
+  createdForms Form[]  @relation("FormAssigner")
+
+  createdWorkflows   Workflow[]      @relation("UserCreatedWorkflows")
+  createdTemplates   FormTemplate[]  @relation("UserCreatedTemplates")
+
+  @@map("users")
+}
+
+model Candidate {
+  id       Int        @id @default(autoincrement())
+  user     User       @relation(fields: [userId], references: [id])
+  userId   Int        @unique
+  phone    String
+  city     String
+  platform String
+  cvUrl    String
+  forms    Form[]
+  workflow Workflow?  @relation(fields: [workflowId], references: [id])
+  workflowId Int?
+
+  @@map("candidates")
+}
+
+model Workflow {
+  id        Int       @id @default(autoincrement())
+  name      String
+  stages    Json
+  isActive  Boolean    @default(true)
+  createdBy Int
+  creator   User       @relation("UserCreatedWorkflows", fields: [createdBy], references: [id])
+  forms     Form[]
+  candidates Candidate[]
+  createdAt DateTime   @default(now())
+
+  @@map("workflows")
+}
+
+model FormTemplate {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  fields      Json
+  createdBy   Int
+  creator     User     @relation("UserCreatedTemplates", fields: [createdBy], references: [id])
+  createdAt   DateTime @default(now())
+  forms       Form[]   @relation("TemplateForms")
+
+  @@map("form_templates")
+}
+
+model Form {
+  id            Int           @id @default(autoincrement())
+  candidate     Candidate     @relation(fields: [candidateId], references: [id])
+  candidateId   Int
+
+  template      FormTemplate? @relation("TemplateForms", fields: [templateId], references: [id])
+  templateId    Int?
+
+  title         String
+  fileUrl       String?
+  note          String?
+  status        FormStatus    @default(PENDING)
+  stage         FormStage     @default(PRE_INTERVIEW)
+  assignedBy    Int
+  assigner      User          @relation("FormAssigner", fields: [assignedBy], references: [id])
+  workflow      Workflow?     @relation(fields: [workflowId], references: [id])
+  workflowId    Int?
+  createdAt     DateTime      @default(now())
+
+  @@map("forms")
+}
+
+enum Role {
+  CANDIDATE
+  HR
+  ADMIN
+}
+
+enum FormStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum FormStage {
+  PRE_INTERVIEW
+  CASE
+  TECH_INTERVIEW
+  FINAL_INTERVIEW
+  COMPLETED
+}
