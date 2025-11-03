@@ -11,3 +11,8 @@ export const updateWorkflowSchema = z.object({
     stages:z.array(z.string()).optional(),
     isActive:z.boolean().optional()
 })
+
+export const assignWorkflowSchema = z.object({
+  candidateId: z.number().int().positive(),
+  workflowId: z.number().int().positive(),
+});

@@ -68,3 +68,58 @@ export const deleteWorkflowService = async (id) => {
   await prisma.workflow.delete({ where: { id } });
   return true;
 }
+
+
+
+
+export const assignWorkflowToCandidateService = async (workflowId, candidateId, assignedByUserId) => {
+  const workflow = await prisma.workflow.findUnique({ where: { id: workflowId } });
+  if (!workflow) throw new AppError("Workflow bulunamadı", 404);
+
+  const candidate = await prisma.candidate.findUnique({ where: { id: candidateId }});
+  if (!candidate) throw new AppError("Candidate bulunamadı", 404);
+
+  const stagesArray = Array.isArray(workflow.stages) ? workflow.stages : [];
+
+  const createCandidateStagesData = stagesArray.map((s, idx) => ({
+    candidateId,
+    workflowId,
+    stageName: s.name || `stage-${idx + 1}`,
+    order: idx + 1,
+    status: 'PENDING',
+    note: null
+  }));
+
+  const result = await prisma.$transaction(async (tx) => {
+    // N:N tablosuna ekle
+    const exists = await tx.candidateWorkflow.findUnique({
+      where: { candidateId_workflowId: { candidateId, workflowId } }
+    });
+
+    if (!exists) {
+      await tx.candidateWorkflow.create({
+        data: { candidateId, workflowId, assignedBy: assignedByUserId }
+      });
+    }
+
+    // Aynı workflow için candidateStage'leri sil
+    await tx.candidateStage.deleteMany({ where: { candidateId, workflowId } });
+
+    // Yeni stage’leri oluştur (assignedBy yok artık)
+    await tx.candidateStage.createMany({ data: createCandidateStagesData });
+
+    const createdStages = await tx.candidateStage.findMany({
+      where: { candidateId, workflowId },
+      orderBy: { order: 'asc' }
+    });
+
+    return {
+      candidate: { id: candidateId },
+      workflow: { id: workflowId, name: workflow.name },
+      stages: createdStages
+    };
+  });
+
+  return result;
+};
+

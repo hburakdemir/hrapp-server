@@ -20,3 +20,23 @@ export const createCandidateService = async (userId, data) => {
 
   return candidate;
 };
+
+
+
+
+export const updateCandidateService = async (userId,data) => {
+  const candidate = await prisma.candidate.findUnique({where:{userId}});
+
+  if(!candidate) throw new AppError("profil bulunamadı123",404);
+
+  const updatedCandidate = await prisma.candidate.update({
+    where: {userId},
+    data: {
+      phone:data.phone,
+      city: data.city,
+      platform: data.platform,
+      cvUrl: data.cvUrl,
+    },
+  });
+  return updatedCandidate;
+}

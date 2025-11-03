@@ -5,17 +5,37 @@ import { AppError } from '../../utils/AppError.js';
 
 
 
-export const registerService = async({name,surname,email,password}) => {
-    const existingUser = await prisma.user.findUnique({where:{email}});
-    if(existingUser) throw new AppError ('Kullanıcı mevcut',409);
+export const registerService = async ({ name, surname, email, password, role, phone, city, platform, cvUrl }) => {
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) throw new AppError('Kullanıcı mevcut', 409);
 
-    const hashedPassword = await bcrypt.hash(password,10);
-    const user = await prisma.user.create({
-        data: {name,email,surname,password:hashedPassword},
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const result = await prisma.$transaction(async (tx) => {
+    // normal kayıt
+    const user = await tx.user.create({
+      data: { name, surname, email, password: hashedPassword, role: role || 'CANDIDATE' },
     });
 
-    return user;
-}
+    let candidate;
+    // eğer aday ise candidate gerekliliklerini doldur
+    if ((role || 'CANDIDATE') === 'CANDIDATE') {
+      candidate = await tx.candidate.create({
+        data: {
+          userId: user.id,
+          phone: phone || '',
+          city: city || '',
+          platform: platform || '',
+          cvUrl: cvUrl || '',
+        },
+      });
+    }
+
+    return { user, candidate };
+  });
+
+  return result;
+};
 
 export const loginService = async({email,password}) => {
 

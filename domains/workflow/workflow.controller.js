@@ -1,6 +1,6 @@
 import { success } from "zod";
-import { createWorkflowService, deleteWorkflowService, getAllWorkflowServices, getWorkflowByIdServices, updateWorkflowServices } from "./workflow.service.js"
-
+import { assignWorkflowToCandidateService, createWorkflowService, deleteWorkflowService, getAllWorkflowServices, getWorkflowByIdServices, updateWorkflowServices } from "./workflow.service.js"
+import { AppError } from "../../utils/AppError.js";
 
 
 export const createWorkflowController = async (req,res,next) => {
@@ -67,6 +67,37 @@ export const deleteWorkflowController = async(req,res,next) => {
             message:"workflow silindi",
         });
     }catch(err){
+        next(err);
+    }
+};
+
+
+
+
+
+export const assignWorkflowToCandidateController = async (req, res, next) => {
+    try {
+        const { workflowId, candidateId } = req.body;
+        const assignedBy = req.user.userId; 
+        console.log("user:",req.user)
+        console.log("user2:",req.userId)
+        console.log("user3:",req.user.userId)
+
+        if (!assignedBy) throw new AppError("Oturum açmış kullanıcı bulunamadı", 401);
+
+        const result = await assignWorkflowToCandidateService(
+            workflowId,
+            candidateId,
+            assignedBy
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: 'Workflow adaya başarıyla atandı',
+            data: result,
+        });
+    } catch (err) {
+        console.error("aday şablon bağlantı hatası", err);
         next(err);
     }
 };
