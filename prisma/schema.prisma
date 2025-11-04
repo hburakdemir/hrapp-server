@@ -17,93 +17,50 @@ model User {
   createdAt DateTime   @default(now())
 
   candidate Candidate?   // onDelete sadece defining side'da olacak
-  createdForms Form[]    @relation("FormAssigner")
   createdWorkflows Workflow[] @relation("UserCreatedWorkflows")
-  createdTemplates FormTemplate[] @relation("UserCreatedTemplates")
 
   @@map("users")
 }
 
 model Candidate {
-  id       Int        @id @default(autoincrement())
-  user     User       @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId   Int        @unique
-  phone    String
-  city     String
-  platform String
-  cvUrl    String
-  forms    Form[]
-  stages CandidateStage[]
-
-  workflows CandidateWorkflow[]
+  id         Int         @id @default(autoincrement())
+  user       User        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     Int         @unique
+  phone      String
+  city       String
+  platform   String
+  cvUrl      String
+  stages     CandidateStage[]
+  workflows  CandidateWorkflow[]
 
   @@map("candidates")
 }
 
 model Workflow {
-  id        Int       @id @default(autoincrement())
-  name      String
-  stages    Json
-  isActive  Boolean    @default(true)
-  createdBy Int
-  creator   User?      @relation("UserCreatedWorkflows", fields: [createdBy], references: [id], onDelete: SetNull)
-  forms     Form[]
-  candidateStages CandidateStage[]  
-
- candidates CandidateWorkflow[]
-  createdAt DateTime   @default(now())
+  id               Int        @id @default(autoincrement())
+  name             String
+  stages           Json
+  isActive         Boolean     @default(true)
+  createdBy        Int
+  creator          User?       @relation("UserCreatedWorkflows", fields: [createdBy], references: [id], onDelete: SetNull)
+  candidateStages  CandidateStage[]
+  candidates       CandidateWorkflow[]
+  createdAt        DateTime    @default(now())
 
   @@map("workflows")
 }
 
-
 model CandidateWorkflow {
-  id          Int       @id @default(autoincrement())
-  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  id          Int        @id @default(autoincrement())
+  candidate   Candidate  @relation(fields: [candidateId], references: [id])
   candidateId Int
-  workflow    Workflow  @relation(fields: [workflowId], references: [id])
+  workflow    Workflow   @relation(fields: [workflowId], references: [id])
   workflowId  Int
   assignedBy  Int
-  assignedAt  DateTime @default(now())
+  assignedAt  DateTime   @default(now())
 
   @@unique([candidateId, workflowId])
-
   @@map("candidate_workflow")
-}
-
-model FormTemplate {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  fields      Json
-  createdBy   Int
-  creator     User?    @relation("UserCreatedTemplates", fields: [createdBy], references: [id], onDelete: SetNull)
-  createdAt   DateTime @default(now())
-  forms       Form[]   @relation("TemplateForms")
-
-  @@map("form_templates")
-}
-
-model Form {
-  id            Int           @id @default(autoincrement())
-  candidate     Candidate?    @relation(fields: [candidateId], references: [id], onDelete: SetNull)
-  candidateId   Int?
-
-  template      FormTemplate? @relation("TemplateForms", fields: [templateId], references: [id], onDelete: SetNull)
-  templateId    Int?
-
-  title         String
-  fileUrl       String?
-  note          String?
-  status        FormStatus    @default(PENDING)
-  stage         FormStage     @default(PRE_INTERVIEW)
-  assignedBy    Int?
-  assigner      User?         @relation("FormAssigner", fields: [assignedBy], references: [id], onDelete: SetNull)
-  workflow      Workflow?     @relation(fields: [workflowId], references: [id], onDelete: SetNull)
-  workflowId    Int?
-  createdAt     DateTime      @default(now())
-
-  @@map("forms")
 }
 
 model CandidateStage {
@@ -114,12 +71,13 @@ model CandidateStage {
   workflowId    Int?
   stageName     String
   order         Int
-  status        FormStatus      @default(PENDING)
+  status        StageStatus     @default(PENDING)
   note          String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
   attachments   CandidateStageAttachment[]
+  tasks         CandidateStageTask[]
 
   @@unique([candidateId, workflowId, order])
   @@map("candidate_stages")
@@ -130,10 +88,40 @@ model CandidateStageAttachment {
   candidateStage   CandidateStage?  @relation(fields: [candidateStageId], references: [id], onDelete: SetNull)
   candidateStageId Int?
   type             AttachmentType
-  content          String          
+  content          String
   createdAt        DateTime         @default(now())
 
   @@map("candidate_stage_attachments")
+}
+
+model CandidateStageTask {
+  id               Int              @id @default(autoincrement())
+  candidateStage   CandidateStage   @relation(fields: [candidateStageId], references: [id], onDelete: Cascade)
+  candidateStageId Int
+  type             StageTaskType
+  title            String
+  description      String?
+  deadline         DateTime?
+  scheduledDate    DateTime?        // Görüşme tarihi için
+  caseContent      String?          // Case içeriği için
+  isRequired       Boolean          @default(true)
+  createdBy        Int?
+  createdAt        DateTime         @default(now())
+  responses        CandidateStageResponse[]
+  @@map("candidate_stage_tasks")
+}
+
+
+model CandidateStageResponse {
+  id               Int                   @id @default(autoincrement())
+  task             CandidateStageTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId           Int
+  responderId      Int
+  content          String
+  fileUrl          String?
+  selectedDate     DateTime?             // Seçilen tarih için
+  createdAt        DateTime              @default(now())
+  @@map("candidate_stage_responses")
 }
 
 enum AttachmentType {
@@ -142,22 +130,22 @@ enum AttachmentType {
   TEXT
 }
 
+enum StageTaskType {
+  FILE_UPLOAD      
+  DATE_SELECTION  
+  CASE_ASSIGNMENT  
+  MESSAGE         
+  IMAGE_UPLOAD    
+}
+
 enum Role {
   CANDIDATE
   HR
   ADMIN
 }
 
-enum FormStatus {
+enum StageStatus {
   PENDING
   APPROVED
   DENIED
-}
-
-enum FormStage {
-  PRE_INTERVIEW
-  CASE
-  TECH_INTERVIEW
-  FINAL_INTERVIEW
-  COMPLETED
 }

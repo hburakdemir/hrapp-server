@@ -71,10 +71,6 @@ export const deleteWorkflowController = async(req,res,next) => {
     }
 };
 
-
-
-
-
 export const assignWorkflowToCandidateController = async (req, res, next) => {
     try {
         const { workflowId, candidateId } = req.body;

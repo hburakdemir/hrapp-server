@@ -11,6 +11,7 @@ import adminRoutes from './domains/admin/admin.routes.js';
 import candidateRoutes from './domains/candidate/canidate.routes.js';
 import workflowRoutes from './domains/workflow/workflow.route.js';
 import userRoutes from './domains/users/user.routes.js';
+import taskRoutes from './domains/tasks/task.route.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -42,6 +43,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes); 
 app.use('/api/candidate', candidateRoutes); 
 app.use('/api/workflows', workflowRoutes); 
+app.use('/api', taskRoutes); 
 
 
 app.use(errorHandler);
