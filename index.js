@@ -9,9 +9,10 @@ import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './domains/auth/auth.routes.js';
 import adminRoutes from './domains/admin/admin.routes.js';
 import candidateRoutes from './domains/candidate/canidate.routes.js';
-import workflowRoutes from './domains/workflow/workflow.route.js';
+import workflowRoutes from './domains/workflow/workflow.routes.js';
 import userRoutes from './domains/users/user.routes.js';
-import taskRoutes from './domains/tasks/task.route.js';
+import taskRoutes from './domains/tasks/task.routes.js';
+import stageRoutes from './domains/stages/stage.routes.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -44,6 +45,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/candidate', candidateRoutes); 
 app.use('/api/workflows', workflowRoutes); 
 app.use('/api', taskRoutes); 
+app.use('/api/stages', stageRoutes); 
 
 
 app.use(errorHandler);

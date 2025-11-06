@@ -6,6 +6,7 @@ import { AppError } from "../../utils/AppError.js";
 export const createWorkflowController = async (req,res,next) => {
     try {
         const workflow = await createWorkflowService(req.user.userId,req.body);
+        console.log("bodyyyyy",req.body);
         res.status(201).json({
             success:true,
             message:"workflow başarıyla oluşturuldu",

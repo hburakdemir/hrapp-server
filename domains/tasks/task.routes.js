@@ -12,8 +12,6 @@ import { validate } from '../../middleware/validate.js';
 import {
   createTaskSchema,
   updateTaskSchema,
-  stageIdParamSchema,
-  taskIdParamSchema
 } from './task.validation.js';
 
 const router = express.Router();
