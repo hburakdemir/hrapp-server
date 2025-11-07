@@ -19,17 +19,20 @@ export const createWorkflowController = async (req,res,next) => {
 
 
 
-export const getAllWorkflowController = async(req,res,next)=>{
-    try {
-        const workflows = await getAllWorkflowServices();
-        res.json({
-            success:true,
-            data:workflows,
-        });
-    }catch(err) {
-        next(err);
-    }
+export const getAllWorkflowController = async (req, res, next) => {
+  try {
+    const userRole = req.user.role;
+    const workflows = await getAllWorkflowServices(userRole);
+
+    res.json({
+      success: true,
+      data: workflows,
+    });
+  } catch (err) {
+    next(err);
+  }
 };
+
 
 
 export const getWorkflowByIdController = async(req,res,next) => {

@@ -2,6 +2,24 @@ import { prisma } from "../../config/prisma.js";
 import { AppError } from "../../utils/AppError.js";
 
 
+
+export const getAllStagesService = async () => {
+  const stages = await prisma.stage.findMany({
+    include: {
+      workflow: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    orderBy: { order: "asc" },
+  });
+
+  return stages;
+};
+
+
 export const getStageByIdService = async (stageId, userId, userRole) => {
   const candidateStage = await prisma.candidateStage.findUnique({
     where: { id: stageId },

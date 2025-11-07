@@ -39,7 +39,7 @@ model Candidate {
 model Workflow {
   id               Int        @id @default(autoincrement())
   name             String
-  stages           Json
+  stages           Stage[]
   isActive         Boolean     @default(true)
   createdBy        Int
   creator          User?       @relation("UserCreatedWorkflows", fields: [createdBy], references: [id], onDelete: SetNull)
@@ -49,6 +49,20 @@ model Workflow {
 
   @@map("workflows")
 }
+
+model Stage {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  order       Int
+  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId  Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("stages")
+}
+
 
 model CandidateWorkflow {
   id          Int        @id @default(autoincrement())

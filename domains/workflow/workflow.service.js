@@ -8,14 +8,18 @@ export const createWorkflowService = async (creatorId,data) => {
         throw new AppError("Stages bir dizi olmalı ve en az bir aşama içermeli",401);
     }
 
-    const existing = await prisma.workflow.findFirst({where:{name}});
-    if(existing) throw new AppError("Bu isimde bir workflow mevcut",409);
+    const stagesData = stages.map((stageName, index) => ({
+      name:stageName,
+      order: index+1
+    }));
 
 
     const workflow = await prisma.workflow.create({
         data :{
             name,
-            stages,
+            stages: {
+              create: stagesData,
+            },
             createdBy:creatorId,
         },
             include: {
@@ -27,14 +31,20 @@ export const createWorkflowService = async (creatorId,data) => {
 };
 
 
-export const getAllWorkflowServices = async() => {
-    return await prisma.workflow.findMany({
-        include: {
-            creator:{select:{id:true,name:true,surname:true}},
-        },
-        orderBy:{createdAt:"desc"},
-    });
+export const getAllWorkflowServices = async (userRole) => {
+  const whereClause = userRole === "ADMIN" ? {} : { isActive: true };
+
+  return await prisma.workflow.findMany({
+    where: whereClause,
+    include: {
+      creator: {
+        select: { id: true, name: true, surname: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 };
+
 
 export const getWorkflowByIdServices = async(id) => {
     const workflow = await prisma.workflow.findUnique({
@@ -65,7 +75,9 @@ export const deleteWorkflowService = async (id) => {
   const workflow = await prisma.workflow.findUnique({ where: { id } });
   if (!workflow) throw new AppError("Workflow bulunamadı", 404);
 
-  await prisma.workflow.delete({ where: { id } });
+  await prisma.workflow.update({   where: {id},
+  data: {isActive:false}, });
+
   return true;
 }
 

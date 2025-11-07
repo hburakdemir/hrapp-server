@@ -15,7 +15,7 @@ export const createUserController = async (req, res, next) => {
 
 export const getAllUsersController = async (req, res, next) => {
     try {
-        const { search, sortBy, order } = req.query; // 👈 burası önemli
+        const { search, sortBy, order } = req.query; 
         const users = await getAllUsersService({ search, sortBy, order });
         res.json({
             success: true,
