@@ -1,5 +1,28 @@
+import { includes } from 'zod';
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../utils/AppError.js';
+
+export const getCandidatesService = async() => {
+  const candidates = await prisma.candidate.findMany({
+    include:{
+      user:{
+        select:{
+          name:true,
+          surname:true,
+          email:true
+        }
+      }
+    }
+  });
+
+  console.log("aday sayısı", candidates.length);
+  if(candidates.length  < 0) throw new AppError("aday listesi bulunamadı",404);
+
+  return candidates;
+
+
+}
+
 
 export const createCandidateService = async (userId, data) => {
   const existingCandidate = await prisma.candidate.findUnique({

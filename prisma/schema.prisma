@@ -18,6 +18,7 @@ model User {
 
   candidate Candidate?   // onDelete sadece defining side'da olacak
   createdWorkflows Workflow[] @relation("UserCreatedWorkflows")
+  assignedWorkflows CandidateWorkflow[] @relation("UserAssignments")
 
   @@map("users")
 }
@@ -71,7 +72,8 @@ model CandidateWorkflow {
   workflow    Workflow   @relation(fields: [workflowId], references: [id])
   workflowId  Int
   assignedBy  Int
-  assignedAt  DateTime   @default(now())
+  assignedByUser User @relation("UserAssignments",fields:[assignedBy], references:[id])
+   assignedAt  DateTime   @default(now())
 
   @@unique([candidateId, workflowId])
   @@map("candidate_workflow")

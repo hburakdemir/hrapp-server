@@ -6,6 +6,7 @@ import {
   updateWorkflowController,
   deleteWorkflowController,
   assignWorkflowToCandidateController,
+  getAllAssignmentsController,
 } from './workflow.controller.js';
 
 import { authenticate } from '../../middleware/auth.js';
@@ -36,4 +37,5 @@ router.delete('/delete/:id',authenticate,authorize('ADMIN', 'HR'),deleteWorkflow
 // şablon aday bağllama 
 router.post("/assign",authenticate, authorize("ADMIN","HR"),validate(assignWorkflowSchema),assignWorkflowToCandidateController);
 
+router.get("/getAssign",authenticate,authorize('ADMIN','HR'),getAllAssignmentsController);
 export default router;

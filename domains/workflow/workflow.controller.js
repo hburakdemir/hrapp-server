@@ -1,5 +1,6 @@
 import { success } from "zod";
-import { assignWorkflowToCandidateService, createWorkflowService, deleteWorkflowService, getAllWorkflowServices, getWorkflowByIdServices, updateWorkflowServices } from "./workflow.service.js"
+import { assignWorkflowToCandidateService, createWorkflowService, deleteWorkflowService,
+     getAllAssignmentsService, getAllWorkflowServices, getWorkflowByIdServices, updateWorkflowServices } from "./workflow.service.js"
 import { AppError } from "../../utils/AppError.js";
 
 
@@ -101,3 +102,18 @@ export const assignWorkflowToCandidateController = async (req, res, next) => {
         next(err);
     }
 };
+
+
+export const getAllAssignmentsController = async(req,res,next) => {
+    try {
+        const assignments = await getAllAssignmentsService();
+
+        res.json({
+            success:true,
+            message:'atamalar listelendi',
+            data:assignments,
+        });
+    }catch(err){
+        next(err);
+    }
+}

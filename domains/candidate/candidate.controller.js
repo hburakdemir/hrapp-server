@@ -1,5 +1,22 @@
 import { success } from 'zod';
-import { createCandidateService, updateCandidateService } from './candidate.service.js';
+import { createCandidateService, getCandidatesService, updateCandidateService } from './candidate.service.js';
+
+
+export const getCandidatesController = async (req,res,next) => {
+  try {
+
+    const candidates = await getCandidatesService();
+
+    res.status(200).json({
+      success:true,
+      message:'aday var',
+      data:candidates
+    });
+  }catch(err) {
+    next(err);
+  }
+}
+
 
 export const createCandidateController = async (req, res, next) => {
   try {
@@ -12,8 +29,8 @@ export const createCandidateController = async (req, res, next) => {
       message: 'Profil başarıyla tamamlandı',
       candidate,
     });
-  } catch (error) {
-    next(error);
+  } catch (err) {
+    next(err);
   }
 };
 
