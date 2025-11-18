@@ -144,26 +144,30 @@ export const getAllAssignmentsService = async () => {
   try {
     const assignments = await prisma.candidateWorkflow.findMany({
       include: {
-        workflow: true,
+        workflow:{
+          select:{
+          name:true,
+          isActive:true,
+          createdBy:true
+        }},
         candidate: {
-          include: {
+          select:{
+            city:true,
+            phone:true,
+            platform:true,
             user: {
               select: {
-                id: true,
                 name: true,
                 surname: true,
                 email: true,
-                role: true,
               },
             },
           },
         },
         assignedByUser: {
           select: {
-            id: true,
             name: true,
             surname: true,
-            role: true,
           },
         },
       },
