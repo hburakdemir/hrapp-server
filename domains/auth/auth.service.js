@@ -50,7 +50,13 @@ export const loginService = async({email,password}) => {
     if(!isMatch) throw new AppError ('Şifreyi yanlış girdiniz',401);
 
    const accessToken = jwt.sign(
-    {userId: user.id,  role: user.role},
+     {
+    userId: user.id,
+    role: user.role,
+    name: user.name,
+    surname: user.surname,
+    email: user.email
+  },
     process.env.JWT_SECRET,
     {expiresIn:'15m'}
    )
