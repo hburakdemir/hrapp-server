@@ -47,15 +47,22 @@ export const getAllWorkflowServices = async (userRole) => {
 };
 
 export const getWorkflowByIdServices = async (id) => {
-  const workflow = await prisma.workflow.findUnique({
-    where: { id },
-    include: {
-      creator: { select: { id: true, name: true, surname: true } },
-      candidates: { select: { id: true, user: { select: { email: true } } } },
+const workflow = await prisma.workflow.findUnique({
+  where: { id },
+  include: {
+    creator: {
+      select: {
+        id: true,
+        name: true,
+        surname: true,
+      },
     },
-  });
-  if (!workflow) throw new AppError("Workflow bulunamadı", 404);
-  return workflow;
+  },
+});
+
+if (!workflow) throw new AppError("Workflow bulunamadı", 404);
+
+return workflow;
 };
 
 export const updateWorkflowServices = async (id, data) => {
@@ -144,17 +151,18 @@ export const getAllAssignmentsService = async () => {
   try {
     const assignments = await prisma.candidateWorkflow.findMany({
       include: {
-        workflow:{
-          select:{
-          name:true,
-          isActive:true,
-          createdBy:true
-        }},
+        workflow: {
+          select: {
+            name: true,
+            isActive: true,
+            createdBy: true,
+          },
+        },
         candidate: {
-          select:{
-            city:true,
-            phone:true,
-            platform:true,
+          select: {
+            city: true,
+            phone: true,
+            platform: true,
             user: {
               select: {
                 name: true,

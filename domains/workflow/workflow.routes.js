@@ -20,10 +20,10 @@ const router = express.Router();
 router.post('/add',authenticate,authorize('ADMIN', 'HR'),validate(createWorkflowSchema),createWorkflowController);
 
 //  Tüm workflow’ları listele (sadece ADMIN veya HR)
-router.get('/get',authenticate,authorize('ADMIN', 'HR'),getAllWorkflowController);
+router.get('/',authenticate,authorize('ADMIN', 'HR'),getAllWorkflowController);
 
 //  Belirli workflow getir (sadece ADMIN veya HR)
-router.get('/get/:id',authenticate,authorize('ADMIN', 'HR'),getWorkflowByIdController
+router.get('/:id',authenticate,authorize('ADMIN', 'HR'),getWorkflowByIdController
 );
 
 // Workflow güncelle (sadece ADMIN veya HR)
