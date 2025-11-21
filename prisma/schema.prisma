@@ -16,7 +16,7 @@ model User {
   role      Role       @default(CANDIDATE)
   createdAt DateTime   @default(now())
 
-  candidate Candidate?   // onDelete sadece defining side'da olacak
+  candidate Candidate?
   createdWorkflows Workflow[] @relation("UserCreatedWorkflows")
   assignedWorkflows CandidateWorkflow[] @relation("UserAssignments")
 
@@ -24,135 +24,150 @@ model User {
 }
 
 model Candidate {
-  id         Int         @id @default(autoincrement())
-  user       User        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId     Int         @unique
+  id         Int       @id @default(autoincrement())
+  user       User      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId     Int       @unique
   phone      String
   city       String
   platform   String
   cvUrl      String
-  stages     CandidateStage[]
+
   workflows  CandidateWorkflow[]
+  stages     CandidateStage[]
 
   @@map("candidates")
 }
 
+
 model Workflow {
   id               Int        @id @default(autoincrement())
   name             String
-  stages           Stage[]
   isActive         Boolean     @default(true)
   createdBy        Int
-  creator          User?       @relation("UserCreatedWorkflows", fields: [createdBy], references: [id], onDelete: SetNull)
-  candidateStages  CandidateStage[]
-  candidates       CandidateWorkflow[]
   createdAt        DateTime    @default(now())
+
+  creator          User?       @relation("UserCreatedWorkflows", fields: [createdBy], references: [id], onDelete: SetNull)
+
+  candidateStages CandidateStage[]
+  
+  stages           Stage[]
+  candidates       CandidateWorkflow[]
 
   @@map("workflows")
 }
 
 model Stage {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   name        String
   description String?
   order       Int
-  workflow    Workflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  workflow    Workflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   workflowId  Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+
+  tasks       StageTask[]
 
   @@map("stages")
 }
 
+model StageTask {
+  id           Int            @id @default(autoincrement())
+  stage        Stage          @relation(fields: [stageId], references: [id], onDelete: Cascade)
+  stageId      Int
+
+  title        String
+  description  String?
+  deadline     DateTime?
+  isRequired   Boolean        @default(true)
+
+  createdBy    Int?
+  createdAt    DateTime       @default(now())
+
+  candidateTasks CandidateStageTask[]
+
+  @@map("stage_tasks")
+}
 
 model CandidateWorkflow {
   id          Int        @id @default(autoincrement())
+
   candidate   Candidate  @relation(fields: [candidateId], references: [id])
   candidateId Int
+
   workflow    Workflow   @relation(fields: [workflowId], references: [id])
   workflowId  Int
+
   assignedBy  Int
-  assignedByUser User @relation("UserAssignments",fields:[assignedBy], references:[id])
-   assignedAt  DateTime   @default(now())
+  assignedByUser User @relation("UserAssignments", fields: [assignedBy], references: [id])
+
+  assignedAt  DateTime   @default(now())
+
+  stages      CandidateStage[]
 
   @@unique([candidateId, workflowId])
   @@map("candidate_workflow")
 }
 
 model CandidateStage {
-  id            Int             @id @default(autoincrement())
-  candidate     Candidate?      @relation(fields: [candidateId], references: [id], onDelete: SetNull)
-  candidateId   Int?
-  workflow      Workflow?       @relation(fields: [workflowId], references: [id], onDelete: SetNull)
-  workflowId    Int?
+  id            Int        @id @default(autoincrement())
+
+  candidate     Candidate  @relation(fields: [candidateId], references: [id])
+  candidateId   Int
+
+  candidateWorkflow CandidateWorkflow? @relation(fields: [candidateWorkflowId], references: [id])
+  candidateWorkflowId Int?
+
+
+  workflow      Workflow   @relation(fields: [workflowId], references: [id])
+  workflowId    Int
+
   stageName     String
   order         Int
-  status        StageStatus     @default(PENDING)
+  status        StageStatus  @default(PENDING)
   note          String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
 
-  attachments   CandidateStageAttachment[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
   tasks         CandidateStageTask[]
 
-  @@unique([candidateId, workflowId, order])
   @@map("candidate_stages")
-}
-
-model CandidateStageAttachment {
-  id               Int              @id @default(autoincrement())
-  candidateStage   CandidateStage?  @relation(fields: [candidateStageId], references: [id], onDelete: SetNull)
-  candidateStageId Int?
-  type             AttachmentType
-  content          String
-  createdAt        DateTime         @default(now())
-
-  @@map("candidate_stage_attachments")
 }
 
 model CandidateStageTask {
   id               Int              @id @default(autoincrement())
+
   candidateStage   CandidateStage   @relation(fields: [candidateStageId], references: [id], onDelete: Cascade)
   candidateStageId Int
-  type             StageTaskType
-  title            String
-  description      String?
-  deadline         DateTime?
-  scheduledDate    DateTime?        // Görüşme tarihi için
-  caseContent      String?          // Case içeriği için
-  isRequired       Boolean          @default(true)
-  createdBy        Int?
+
+  taskTemplate     StageTask        @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
+  taskTemplateId   Int
+
+  status           StageTaskStatus  @default(PENDING)
+  note             String?
   createdAt        DateTime         @default(now())
+
   responses        CandidateStageResponse[]
+
   @@map("candidate_stage_tasks")
 }
-
 
 model CandidateStageResponse {
   id               Int                   @id @default(autoincrement())
   task             CandidateStageTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId           Int
+
   responderId      Int
   content          String
   fileUrl          String?
-  selectedDate     DateTime?             // Seçilen tarih için
+  selectedDate     DateTime?
   createdAt        DateTime              @default(now())
+
   @@map("candidate_stage_responses")
 }
 
-enum AttachmentType {
-  NOTE
-  FILE
-  TEXT
-}
-
-enum StageTaskType {
-  FILE_UPLOAD      
-  DATE_SELECTION  
-  CASE_ASSIGNMENT  
-  MESSAGE         
-  IMAGE_UPLOAD    
-}
 
 enum Role {
   CANDIDATE
@@ -160,7 +175,14 @@ enum Role {
   ADMIN
 }
 
+
 enum StageStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum StageTaskStatus {
   PENDING
   APPROVED
   DENIED

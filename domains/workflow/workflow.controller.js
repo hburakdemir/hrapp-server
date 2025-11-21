@@ -91,6 +91,9 @@ export const assignWorkflowToCandidateController = async (req, res, next) => {
             candidateId,
             assignedBy
         );
+        console.log(workflowId);
+        console.log(candidateId);
+        console.log(assignedBy);
 
         return res.status(200).json({
             success: true,

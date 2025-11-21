@@ -1,29 +1,27 @@
 import {
-  createTaskService,
-  getTasksByStageService,
+  createStageTaskService,
+  getStageTasksService,
   getTaskByIdService,
   updateTaskService,
   deleteTaskService
 } from './task.service.js';
 import { AppError } from '../../utils/AppError.js';
 
-// Task oluşturma
+// Stage altına task oluşturma
 export const createTaskController = async (req, res, next) => {
   try {
     const { stageId } = req.params;
     const taskData = req.body;
     const createdBy = req.user.userId;
+    console.log(req.user.userId)
 
-    if (!createdBy) {
-      throw new AppError("Oturum açmış kullanıcı bulunamadı", 401);
-    }
-
-    const result = await createTaskService(parseInt(stageId), taskData, createdBy);
+    const result = await createStageTaskService(parseInt(stageId), taskData,createdBy);
 
     return res.status(201).json({
       success: true,
       message: 'Task başarıyla oluşturuldu',
-      data: result
+      data: result,
+      createdBy: createdBy
     });
 
   } catch (error) {
@@ -32,18 +30,16 @@ export const createTaskController = async (req, res, next) => {
   }
 };
 
-// Stage'e ait tüm task'ları getir
-export const getTasksByStageController = async (req, res, next) => {
+// Bir stage'e ait tüm taskleri listele
+export const getStageTasksController = async (req, res, next) => {
   try {
     const { stageId } = req.params;
-    const userId = req.user.userId;
-    const userRole = req.user.role;
 
-    const result = await getTasksByStageService(parseInt(stageId), userId, userRole);
+    const tasks = await getStageTasksService(parseInt(stageId));
 
     return res.status(200).json({
       success: true,
-      data: result
+      data: tasks
     });
 
   } catch (error) {
@@ -56,14 +52,12 @@ export const getTasksByStageController = async (req, res, next) => {
 export const getTaskByIdController = async (req, res, next) => {
   try {
     const { taskId } = req.params;
-    const userId = req.user.userId;
-    const userRole = req.user.role;
 
-    const result = await getTaskByIdService(parseInt(taskId), userId, userRole);
+    const task = await getTaskByIdService(parseInt(taskId));
 
     return res.status(200).json({
       success: true,
-      data: result
+      data: task
     });
 
   } catch (error) {
@@ -72,18 +66,18 @@ export const getTaskByIdController = async (req, res, next) => {
   }
 };
 
-// Task güncelleme (sadece HR/ADMIN)
+// Task güncelleme
 export const updateTaskController = async (req, res, next) => {
   try {
     const { taskId } = req.params;
     const updateData = req.body;
 
-    const result = await updateTaskService(parseInt(taskId), updateData);
+    const updatedTask = await updateTaskService(parseInt(taskId), updateData);
 
     return res.status(200).json({
       success: true,
       message: 'Task başarıyla güncellendi',
-      data: result
+      data: updatedTask
     });
 
   } catch (error) {
@@ -92,7 +86,7 @@ export const updateTaskController = async (req, res, next) => {
   }
 };
 
-// Task silme (sadece HR/ADMIN)
+// Task silme
 export const deleteTaskController = async (req, res, next) => {
   try {
     const { taskId } = req.params;

@@ -90,52 +90,53 @@ export const assignWorkflowToCandidateService = async (
   candidateId,
   assignedByUserId
 ) => {
-  const workflow = await prisma.workflow.findUnique({
-    where: { id: workflowId },
-    include: {
-      stages: true,
-    },
-  });
-  if (!workflow) throw new AppError("Workflow bulunamadı", 404);
+  return await prisma.$transaction(async (tx) => {
+    const workflow = await tx.workflow.findUnique({
+      where: { id: workflowId },
+      include: { stages: { include: { tasks: true } } },
+    });
+    if (!workflow) throw new AppError("Workflow bulunamadı", 404);
 
-  const candidate = await prisma.candidate.findUnique({
-    where: { id: candidateId },
-  });
-  if (!candidate) throw new AppError("Candidate bulunamadı", 404);
+    const candidate = await tx.candidate.findUnique({ where: { id: candidateId } });
+    if (!candidate) throw new AppError("Candidate bulunamadı", 404);
 
-  const stagesArray = Array.isArray(workflow.stages) ? workflow.stages : [];
-
-  const createCandidateStagesData = stagesArray.map((s, idx) => ({
-    candidateId,
-    workflowId,
-    stageName: s.name,
-    order: idx + 1,
-    status: "PENDING",
-    note: null,
-  }));
-
-  const result = await prisma.$transaction(async (tx) => {
-    // N:N tablosuna ekle
     const exists = await tx.candidateWorkflow.findUnique({
       where: { candidateId_workflowId: { candidateId, workflowId } },
     });
+    if (exists) throw new AppError("Bu workflow adaya zaten atanmış", 400);
 
-    if (!exists) {
-      await tx.candidateWorkflow.create({
-        data: { candidateId, workflowId, assignedBy: assignedByUserId },
-      });
-    }
-
-    // Aynı workflow için candidateStage'leri sil
-    await tx.candidateStage.deleteMany({ where: { candidateId, workflowId } });
-
-    // Yeni stage’leri oluştur (assignedBy yok artık)
-    await tx.candidateStage.createMany({ data: createCandidateStagesData });
-
-    const createdStages = await tx.candidateStage.findMany({
-      where: { candidateId, workflowId },
-      orderBy: { order: "asc" },
+    await tx.candidateWorkflow.create({
+      data: { candidateId, workflowId, assignedBy: assignedByUserId },
     });
+
+    const createdStages = [];
+
+    for (let i = 0; i < workflow.stages.length; i++) {
+      const stage = workflow.stages[i];
+
+      const candidateStage = await tx.candidateStage.create({
+        data: {
+          candidateId,
+          workflowId,
+          stageName: stage.name,
+          order: i + 1,
+          status: "PENDING",
+        },
+      });
+
+      createdStages.push(candidateStage);
+
+      // Stage’in task’larını adaya ekle
+      if (stage.tasks.length > 0) {
+        const candidateStageTasksData = stage.tasks.map((t) => ({
+          candidateStageId: candidateStage.id,
+          taskTemplateId: t.id,
+          status: "PENDING",
+        }));
+
+        await tx.candidateStageTask.createMany({ data: candidateStageTasksData });
+      }
+    }
 
     return {
       candidate: { id: candidateId },
@@ -143,8 +144,6 @@ export const assignWorkflowToCandidateService = async (
       stages: createdStages,
     };
   });
-
-  return result;
 };
 
 export const getAllAssignmentsService = async () => {

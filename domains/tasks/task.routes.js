@@ -1,7 +1,7 @@
 import express from 'express';
 import {
   createTaskController,
-  getTasksByStageController,
+  getStageTasksController,
   getTaskByIdController,
   updateTaskController,
   deleteTaskController
@@ -20,7 +20,7 @@ const router = express.Router();
 router.post('/stages/:stageId/tasks', authenticate, authorize('ADMIN', 'HR'), validate(createTaskSchema), createTaskController);
 
 // Stage'e ait task'ları listeleme
-router.get('/stages/:stageId/tasks', authenticate, authorize('ADMIN', 'HR', 'CANDIDATE'), getTasksByStageController);
+router.get('/stages/:stageId/tasks', authenticate, authorize('ADMIN', 'HR', 'CANDIDATE'), getStageTasksController);
 
 // Task detayı getirme
 router.get('/tasks/:taskId', authenticate, authorize('ADMIN', 'HR', 'CANDIDATE'), getTaskByIdController);
