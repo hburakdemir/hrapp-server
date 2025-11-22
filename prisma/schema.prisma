@@ -61,6 +61,7 @@ model Stage {
   name        String
   description String?
   order       Int
+  status      StageStatus @default(PENDING)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -79,6 +80,7 @@ model StageTask {
 
   title        String
   description  String?
+  status       StageTaskStatus @default(PENDING)
   deadline     DateTime?
   isRequired   Boolean        @default(true)
 
@@ -142,8 +144,8 @@ model CandidateStageTask {
   candidateStage   CandidateStage   @relation(fields: [candidateStageId], references: [id], onDelete: Cascade)
   candidateStageId Int
 
-  taskTemplate     StageTask        @relation(fields: [taskTemplateId], references: [id], onDelete: Cascade)
-  taskTemplateId   Int
+  stageTasks       StageTask?        @relation(fields: [stageTasksId], references: [id], onDelete: Cascade)
+  stageTasksId     Int?
 
   status           StageTaskStatus  @default(PENDING)
   note             String?
@@ -153,6 +155,7 @@ model CandidateStageTask {
 
   @@map("candidate_stage_tasks")
 }
+
 
 model CandidateStageResponse {
   id               Int                   @id @default(autoincrement())

@@ -130,7 +130,7 @@ export const assignWorkflowToCandidateService = async (
       if (stage.tasks.length > 0) {
         const candidateStageTasksData = stage.tasks.map((t) => ({
           candidateStageId: candidateStage.id,
-          taskTemplateId: t.id,
+          stageTasksId: t.id,
           status: "PENDING",
         }));
 
