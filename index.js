@@ -13,6 +13,7 @@ import workflowRoutes from './domains/workflow/workflow.routes.js';
 import userRoutes from './domains/users/user.routes.js';
 import taskRoutes from './domains/tasks/task.routes.js';
 import stageRoutes from './domains/stages/stage.routes.js';
+import assignmentRoutes from './domains/assignments/assignment.routes.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -46,7 +47,12 @@ app.use('/api/candidate', candidateRoutes);
 app.use('/api/workflows', workflowRoutes); 
 app.use('/api', taskRoutes); 
 app.use('/api/stages', stageRoutes); 
+app.use('/api/assignment', assignmentRoutes); 
 
+
+app.use((req, res) => {
+  res.status(404).json({ success: false, message: "Endpoint bulunamadı" });
+});
 
 
 app.use(errorHandler);

@@ -59,7 +59,6 @@ model Workflow {
 model Stage {
   id          Int        @id @default(autoincrement())
   name        String
-  description String?
   order       Int
   status      StageStatus @default(PENDING)
   createdAt   DateTime   @default(now())

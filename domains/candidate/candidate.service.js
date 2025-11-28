@@ -1,4 +1,3 @@
-import { includes } from 'zod';
 import { prisma } from '../../config/prisma.js';
 import { AppError } from '../../utils/AppError.js';
 
@@ -62,4 +61,16 @@ export const updateCandidateService = async (userId,data) => {
     },
   });
   return updatedCandidate;
+}
+
+
+export const getMyProfileService = async (userId) => {
+  const candidate = await prisma.candidate.findUnique({
+    where: {userId}
+  })
+if(!candidate) {
+  throw new AppError("Aday profili bulunamadı");
+}
+
+return candidate;
 }
