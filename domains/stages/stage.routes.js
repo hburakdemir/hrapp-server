@@ -9,5 +9,4 @@ router.get("/", authenticate, authorize("ADMIN", "HR"), getAllStagesController);
 router.get("/:stageId", authenticate, authorize("ADMIN", "HR"), getStageByIdController);
 router.put("/:stageId", authenticate, authorize("ADMIN", "HR"), updateStageController);
 router.delete("/:stageId", authenticate, authorize("ADMIN", "HR"), deleteStageController);
-// router.get("/get/:stageId",authenticate,authorize("ADMIN", "HR", "CANDIDATE"),getCandidateAssignedStageController);
 export default router;

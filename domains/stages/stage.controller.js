@@ -65,25 +65,3 @@ export const deleteStageController = async(req,res,next) => {
     next(err);
   }
 }
-
-
-// export const getCandidateAssignedStageController = async (req, res, next) => {
-//   try {
-//     const { stageId } = req.params;
-//     console.log(req.params)
-//     const userId = req.user.userId;
-//     console.log(req.user)
-//     console.log(userId);
-//     const userRole = req.user.role;
-
-//     const result = await getCandidateAssignedStageService(parseInt(stageId), userId, userRole);
-
-//     return res.status(200).json({
-//       success: true,
-//       data: result,
-//     });
-//   } catch (error) {
-//     console.error("Stage detay hatası:", error);
-//     next(error);
-//   }
-// };

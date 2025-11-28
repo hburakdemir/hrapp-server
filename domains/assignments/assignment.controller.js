@@ -1,5 +1,5 @@
 import { success } from "zod";
-import { getAllAssignmentsService, getAssignmentByIdService,getCandidateAssignmentForOwnService } from "./assignment.service.js";
+import { getAllAssignmentsService, getAssignmentByIdService,getCandidateAssignmentForOwnService, getCandidatePipelineService } from "./assignment.service.js";
 
 
 export const getAllAssignmentsController = async(req,res,next) => {
@@ -50,3 +50,23 @@ export const getCandidateAssignmentForOwnController = async (req, res) => {
   }
 };
 
+
+export const getCandidatePipelineController = async (req, res, next) => {
+  try {
+    if (req.user.role !== "CANDIDATE") {
+      throw new AppError("Bu endpoint sadece adaylar içindir.", 403);
+    }
+
+    const userId = req.user.userId ?? req.user.id;
+    console.log("TOKEN PAYLOAD:", req.user);
+
+    const result = await getCandidatePipelineService(userId);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
