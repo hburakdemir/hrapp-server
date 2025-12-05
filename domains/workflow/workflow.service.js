@@ -105,7 +105,8 @@ export const assignWorkflowToCandidateService = async (
     });
     if (exists) throw new AppError("Bu workflow adaya zaten atanmış", 400);
 
-    await tx.candidateWorkflow.create({
+    // 1) Workflow kaydını yakala
+    const cw = await tx.candidateWorkflow.create({
       data: { candidateId, workflowId, assignedBy: assignedByUserId },
     });
 
@@ -114,10 +115,12 @@ export const assignWorkflowToCandidateService = async (
     for (let i = 0; i < workflow.stages.length; i++) {
       const stage = workflow.stages[i];
 
+      // 2) candidateStage’e candidateWorkflowId EKLE
       const candidateStage = await tx.candidateStage.create({
         data: {
           candidateId,
           workflowId,
+          candidateWorkflowId: cw.id,   // 🔥 ZORUNLU
           stageName: stage.name,
           order: i + 1,
           status: "PENDING",
@@ -126,7 +129,7 @@ export const assignWorkflowToCandidateService = async (
 
       createdStages.push(candidateStage);
 
-      // Stage’in task’larını adaya ekle
+      // 3) Stage’in task’larını adaya ata
       if (stage.tasks.length > 0) {
         const candidateStageTasksData = stage.tasks.map((t) => ({
           candidateStageId: candidateStage.id,
@@ -145,6 +148,7 @@ export const assignWorkflowToCandidateService = async (
     };
   });
 };
+
 
 export const getAllAssignmentsService = async () => {
   try {
